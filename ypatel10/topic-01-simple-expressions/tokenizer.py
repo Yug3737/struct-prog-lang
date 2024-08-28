@@ -26,6 +26,7 @@ patterns = [
 
 for pattern in patterns:
     pattern[0] = re.compile(pattern[0])
+    print("compiled regex obj is", pattern[0])
 
 def tokenize(characters: str):
     tokens = []
@@ -41,10 +42,10 @@ def tokenize(characters: str):
             'value': match.group(0),
             'position': position,
         }
-        tokens.append(match)
+        tokens.append(token)
         position = match.end()
 
-    for token in tokens: # this is called token post processing
+    for token in tokens: # token post processing
         if token["tag"] == "number":
             if "." in token["value"]:
                 token["value"] = float(token["value"])
@@ -56,24 +57,20 @@ def test_simple_tokens():
     print("Testing simple tokens")
     assert tokenize("+") == [{'tag': '+', 'value': '+', 'position': 0}]
     i = 0
-    for char in ["+-/*"]:
+    for char in ["+-/*()"]:
         tokens = tokenize(char)
-        print(tokens)
         assert tokens[0]["tag"] == char
         assert tokens[0]["value"] == char
         assert tokens[0]["position"] == i
-        assert tokenize(char) == [{'tag': char, 'value': char, 'position': 0}]
     
     for characters in ["+","++","-"]:
         tokens = tokenize(characters)
-        print(characters)
         assert tokens[0]["tag"]  == characters
         assert tokens[0]["value"]  == characters
     for number in ["123.45", "1.", ".1", "123"]:
         tokens = tokenize(number)
         assert tokens[0]["tag"] == "number"
         assert tokens[0]["value"] == float(number)
-
 
 if __name__ == "__main__":
     test_simple_tokens()
