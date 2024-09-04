@@ -1,7 +1,7 @@
 #
 # file: tokenizer.py
 # author: Yug Patel
-# last modified: 26 Aug 2024
+# last modified: 4 September 2024 
 #
 """
 Break character stream into tokens and provide a token stream
@@ -11,8 +11,9 @@ Break character stream into tokens and provide a token stream
 import re
 # Each \ in regex needs to be a \\ in python
 patterns = [
-    ["\\+", "+"], # want to produce a + token when we encounter one
-    ["\\+\\+", "++"],
+    ["\\+\\+", "++"],# [pattern, tag]
+    ["\\-\\-", "--"],
+    ["\\+", "+"],
     ["\\-", "-"],
     ["\\*", "*"],
     ["\\/", "/"],
@@ -62,6 +63,9 @@ def test_simple_tokens():
         assert tokens[0]["tag"] == char
         assert tokens[0]["value"] == char
         assert tokens[0]["position"] == i
+    
+    for characters in ['++', '--', '+', '-']:
+        tokens = tokenize(characters)
     
     for characters in ["+","++","-"]:
         tokens = tokenize(characters)
