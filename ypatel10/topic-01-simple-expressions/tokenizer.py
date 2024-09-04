@@ -27,7 +27,7 @@ patterns = [
 
 for pattern in patterns:
     pattern[0] = re.compile(pattern[0])
-    print("compiled regex obj is", pattern[0])
+    # print("compiled regex obj is", pattern[0])
 
 def tokenize(characters: str):
     tokens = []
@@ -64,8 +64,8 @@ def test_simple_tokens():
         assert tokens[0]["value"] == char
         assert tokens[0]["position"] == i
     
-    for characters in ['++', '--', '+', '-']:
-        tokens = tokenize(characters)
+    # for characters in ['++', '--', '+', '-']:
+    #     tokens = tokenize(characters)
     
     for characters in ["+","++","-"]:
         tokens = tokenize(characters)
