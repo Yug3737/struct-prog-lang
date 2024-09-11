@@ -94,7 +94,25 @@ def test_parse_term():
     """
     term = factor { "*"|"/" factor }
     """
-    pass
+    print("testing parse_term")
+    tokens = tokenize("2*3")
+    ast, tokens = parse_term(tokens)
+    assert ast == {'left': {'position': 0, 'tag': 'number', 'value': 2},'right': {'position': 2, 'tag': 'number', 'value': 3},'tag': '*'}    
+    tokens = tokenize("2*3/4*5")
+    ast, tokens = parse_term(tokens)
+    assert ast == {
+        "left": {
+            "left": {
+                "left": {"position": 0, "tag": "number", "value": 2},
+                "right": {"position": 2, "tag": "number", "value": 3},
+                "tag": "*",
+            },
+            "right": {"position": 4, "tag": "number", "value": 4},
+            "tag": "/",
+        },
+        "right": {"position": 6, "tag": "number", "value": 5},
+        "tag": "*",
+    }
 
 
 def parse_expression(tokens):
@@ -113,10 +131,48 @@ def test_parse_expression():
     """
     expression = term { "+"|"-" term }
     """
-    pass
-
+    print("testing parse_expression")
+    tokens = tokenize("2+3")
+    ast, tokens = parse_expression(tokens)
+    assert ast == {
+        "left": {"position": 0, "tag": "number", "value": 2},
+        "right": {"position": 2, "tag": "number", "value": 3},
+        "tag": "+",
+    }
+    tokens = tokenize("2+3-4+5")
+    ast, tokens = parse_expression(tokens)
+    assert ast == {
+        "left": {
+            "left": {
+                "left": {"position": 0, "tag": "number", "value": 2},
+                "right": {"position": 2, "tag": "number", "value": 3},
+                "tag": "+",
+            },
+            "right": {"position": 4, "tag": "number", "value": 4},
+            "tag": "-",
+        },
+        "right": {"position": 6, "tag": "number", "value": 5},
+        "tag": "+",
+    }
+    tokens = tokenize("2+3*4+5")
+    ast, tokens = parse_expression(tokens)
+    assert ast == {
+        "left": {
+            "left": {"position": 0, "tag": "number", "value": 2},
+            "right": {
+                "left": {"position": 2, "tag": "number", "value": 3},
+                "right": {"position": 4, "tag": "number", "value": 4},
+                "tag": "*",
+            },
+            "tag": "+",
+        },
+        "right": {"position": 6, "tag": "number", "value": 5},
+        "tag": "+",
+    }
 
 if __name__ == "__main__":
     test_parse_simple_expression()
     test_parse_factor()
+    test_parse_term()
+    test_parse_expression()
     print("done")
