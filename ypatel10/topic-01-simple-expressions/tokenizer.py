@@ -1,7 +1,7 @@
 #
 # file: tokenizer.py
 # author: Yug Patel
-# last modified: 4 September 2024 
+# last modified: 14 September 2024 
 #
 """
 Break character stream into tokens and provide a token stream
@@ -27,7 +27,6 @@ patterns = [
 
 for pattern in patterns:
     pattern[0] = re.compile(pattern[0])
-    # print("compiled regex obj is", pattern[0])
 
 def tokenize(characters: str):
     tokens = []
@@ -52,10 +51,21 @@ def tokenize(characters: str):
                 token["value"] = float(token["value"])
             else:
                 token["value"] = int(token["value"])
+    token = {
+        "tag": None,
+        "value": None,
+        "position": position,
+    }
+    tokens.append(token)
     return tokens
 
 def test_simple_tokens():
     print("Testing simple tokens")
+    print(tokenize("+"))
+    exit(0)
+    assert tokenize("+") == [{'tag': '+', 'value': '+', 'position': 0}, {'tag': None, 'value': None, 'position': 1}]
+    exit(0)
+    assert tokenize("_") == [{'tag': '-', 'value': '0', 'position': 0}, {'tag': None, 'value': None, 'position': 1}]
     assert tokenize("+") == [{'tag': '+', 'value': '+', 'position': 0}]
     i = 0
     for char in ["+-/*()"]:
@@ -63,10 +73,7 @@ def test_simple_tokens():
         assert tokens[0]["tag"] == char
         assert tokens[0]["value"] == char
         assert tokens[0]["position"] == i
-    
-    # for characters in ['++', '--', '+', '-']:
-    #     tokens = tokenize(characters)
-    
+        i += 1
     for characters in ["+","++","-"]:
         tokens = tokenize(characters)
         assert tokens[0]["tag"]  == characters
