@@ -26,6 +26,48 @@ def evaluate(ast, environment):
     if ast["tag"] == "negate":
         value, _ = evaluate(ast["value"], environment)
         return -value, False
+    if ast["tag"] == "&&":
+        left_value, _ = evaluate(ast["left"], environment)
+        right_value, _ = evaluate(ast["right"], environment)
+        return left_value - right_value, False
+    if ast["tag"] == "||":
+        left_value, _ = evaluate(ast["left"], environment)
+        right_value, _ = evaluate(ast["right"], environment)
+        return left_value - right_value, False
+    if ast["tag"] == "!":
+        left_value, _ = evaluate(ast["left"], environment)
+        right_value, _ = evaluate(ast["right"], environment)
+        return left_value - right_value, False
+    if ast["tag"] == ">":
+        left_value, _ = evaluate(ast["left"], environment)
+        right_value, _ = evaluate(ast["right"], environment)
+        return left_value / right_value, False
+    if ast["tag"] == ">=":
+        left_value, _ = evaluate(ast["left"], environment)
+        right_value, _ = evaluate(ast["right"], environment)
+        return left_value / right_value, False
+    if ast["tag"] == "<":
+        left_value, _ = evaluate(ast["left"], environment)
+        right_value, _ = evaluate(ast["right"], environment)
+        return left_value / right_value, False
+    if ast["tag"] == "<=":
+        left_value, _ = evaluate(ast["left"], environment)
+        right_value, _ = evaluate(ast["right"], environment)
+        return left_value / right_value, False
+    if ast["tag"] == "==":
+        left_value, _ = evaluate(ast["left"], environment)
+        right_value, _ = evaluate(ast["right"], environment)
+        return left_value / right_value, False
+    if ast["tag"] == "!=":
+        left_value, _ = evaluate(ast["left"], environment)
+        right_value, _ = evaluate(ast["right"], environment)
+        return left_value / right_value, False
+    if ast["tag"] == "print":
+        if ast["value"]:
+            value, _ = evaluate(ast["value", environment])
+        else:
+            print()
+            return None, False
     assert False, "Unknown operator in AST"
 
 def equals(code, environment, expected_result, expected_environment=None):
@@ -78,6 +120,11 @@ def test_evaluate_negate():
     print("testing evaluate multiplication")
     equals("-1", {}, 1, {})
     equals("--3", {}, 3, {})
+
+def test_evaluate_negate():
+    print("testing print statement")
+    equals("print()", {}, None, {})
+    equals("print(50+7)", {}, None, {})
 
 if __name__ == "__main__":
     test_evaluate_single_value()
