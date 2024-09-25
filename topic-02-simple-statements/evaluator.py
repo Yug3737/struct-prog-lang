@@ -60,6 +60,13 @@ def evaluate(ast, environment):
         left_value, _ = evaluate(ast["left"], environment)
         right_value, _ = evaluate(ast["right"], environment)
         return left_value != right_value, False
+    if ast["tag"] == "print":
+        if ast["value"]:
+            value, _ = evaluate(ast["value"], environment)
+            print(value)
+        else:
+            print()
+        return None, False
     assert False, "Unknown operator in AST"
 
 def equals(code, environment, expected_result, expected_environment=None):
@@ -114,6 +121,13 @@ def test_evaluate_negation():
     equals("-2",{},-2,{})
     equals("--3",{},3,{})
 
+
+def test_print_statement():
+    print("test print statement")
+    equals("print()", {}, None, {})
+    equals("print(50+7)", {}, None, {})
+
+
 if __name__ == "__main__":
     test_evaluate_single_value()
     test_evaluate_addition()
@@ -121,4 +135,5 @@ if __name__ == "__main__":
     test_evaluate_multiplication()
     test_evaluate_division()
     test_evaluate_negation()
+    test_print_statement()
     print("done.")
