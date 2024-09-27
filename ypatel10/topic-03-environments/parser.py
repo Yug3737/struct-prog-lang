@@ -45,26 +45,21 @@ def test_parse_simple_expression():
     ast, tokens = parse_simple_expression(tokens)
     assert ast["tag"] == "number"
     assert ast["value"] == 2
-    # pprint(ast)
-    tokens = tokenize("(2)")
     ast, tokens = parse_simple_expression(tokens)
     assert ast["tag"] == "number"
     assert ast["value"] == 2
-    # pprint(ast)
     tokens = tokenize("-2")
     ast, tokens = parse_simple_expression(tokens)
     assert ast == {
         "tag": "negate",
         "value": {"position": 1, "tag": "number", "value": 2},
     }
-    # pprint(ast)
     tokens = tokenize("-(2)")
     ast, tokens = parse_simple_expression(tokens)
     assert ast == {
         "tag": "negate",
         "value": {"position": 2, "tag": "number", "value": 2},
     }
-    # pprint(ast)
 
 def parse_factor(tokens):
     """
@@ -80,7 +75,6 @@ def test_parse_factor():
     for s in ["2", "(2)", "-2"]:
         assert parse_factor(tokenize(s)) == parse_simple_expression(tokenize(s))
 
-
 def parse_term(tokens):
     """
     term = factor { "*"|"/" factor }
@@ -91,7 +85,6 @@ def parse_term(tokens):
         right_node, tokens = parse_factor(tokens[1:])
         node = {"tag": tag, "left": node, "right": right_node}
     return node, tokens
-
 
 def test_parse_term():
     """
@@ -115,61 +108,6 @@ def test_parse_term():
         },
         "right": {"position": 6, "tag": "number", "value": 5},
         "tag": "*",
-    }
-
-
-def parse_expression(tokens):
-    """
-    expression = term { "+"|"-" term }
-    """
-    node, tokens = parse_term(tokens)
-    while tokens[0]["tag"] in ["+", "-"]:
-        tag = tokens[0]["tag"]
-        right_node, tokens = parse_term(tokens[1:])
-        node = {"tag": tag, "left": node, "right": right_node}
-    return node, tokens
-
-def test_parse_expression():
-    """
-    expression = term { "+"|"-" term }
-    """
-    print("testing parse_expression")
-    tokens = tokenize("2+3")
-    ast, tokens = parse_expression(tokens)
-    assert ast == {
-        "left": {"position": 0, "tag": "number", "value": 2},
-        "right": {"position": 2, "tag": "number", "value": 3},
-        "tag": "+",
-    }
-    tokens = tokenize("2+3-4+5")
-    ast, tokens = parse_expression(tokens)
-    assert ast == {
-        "left": {
-            "left": {
-                "left": {"position": 0, "tag": "number", "value": 2},
-                "right": {"position": 2, "tag": "number", "value": 3},
-                "tag": "+",
-            },
-            "right": {"position": 4, "tag": "number", "value": 4},
-            "tag": "-",
-        },
-        "right": {"position": 6, "tag": "number", "value": 5},
-        "tag": "+",
-    }
-    tokens = tokenize("2+3*4+5")
-    ast, tokens = parse_expression(tokens)
-    assert ast == {
-        "left": {
-            "left": {"position": 0, "tag": "number", "value": 2},
-            "right": {
-                "left": {"position": 2, "tag": "number", "value": 3},
-                "right": {"position": 4, "tag": "number", "value": 4},
-                "tag": "*",
-            },
-            "tag": "+",
-        },
-        "right": {"position": 6, "tag": "number", "value": 5},
-        "tag": "+",
     }
 
 def parse_arithmetic_expression(tokens):
@@ -225,6 +163,7 @@ def test_parse_arithmetic_expression():
         "right": {"position": 6, "tag": "number", "value": 5},
         "tag": "+",
     }
+
 def parse_comparison_expression(tokens):
     """
         comparison_expression = arithmetic_expression ["==" | "!=" | "<" | ">" | "<=" | ">=" arithmetic_expression]
@@ -318,6 +257,63 @@ def test_parse_boolean_expression(tokens):
         "right": {"position":3 ,"tag": "number", "value": 3},
     }
 
+def parse_expression(tokens):
+    """
+    expression = term { "+"|"-" term }
+    """
+    node, tokens = parse_term(tokens)
+    while tokens[0]["tag"] in ["+", "-"]:
+        tag = tokens[0]["tag"]
+        right_node, tokens = parse_term(tokens[1:])
+        node = {"tag": tag, "left": node, "right": right_node}
+    return node, tokens
+
+def parse_expression(tokens):
+    return parse_boolean_expression(tokens)
+
+def test_parse_expression():
+    """
+    expression = term { "+"|"-" term }
+    """
+    print("testing parse_expression")
+    tokens = tokenize("2+3")
+    ast, tokens = parse_expression(tokens)
+    assert ast == {
+        "left": {"position": 0, "tag": "number", "value": 2},
+        "right": {"position": 2, "tag": "number", "value": 3},
+        "tag": "+",
+    }
+    tokens = tokenize("2+3-4+5")
+    ast, tokens = parse_expression(tokens)
+    assert ast == {
+        "left": {
+            "left": {
+                "left": {"position": 0, "tag": "number", "value": 2},
+                "right": {"position": 2, "tag": "number", "value": 3},
+                "tag": "+",
+            },
+            "right": {"position": 4, "tag": "number", "value": 4},
+            "tag": "-",
+        },
+        "right": {"position": 6, "tag": "number", "value": 5},
+        "tag": "+",
+    }
+    tokens = tokenize("2+3*4+5")
+    ast, tokens = parse_expression(tokens)
+    assert ast == {
+        "left": {
+            "left": {"position": 0, "tag": "number", "value": 2},
+            "right": {
+                "left": {"position": 2, "tag": "number", "value": 3},
+                "right": {"position": 4, "tag": "number", "value": 4},
+                "tag": "*",
+            },
+            "tag": "+",
+        },
+        "right": {"position": 6, "tag": "number", "value": 5},
+        "tag": "+",
+    }
+
 def parse_print_statement(tokens):
     """
     print_statement = "print" "(" expression ")"
@@ -347,25 +343,6 @@ def test_parse_print_statement(tokens):
     tokens = tokenize("print(2+3)")
     ast = parse_print_statement(tokens)
     print(ast)
-    exit()
-    
-def parse_expression(tokens):
-    return parse_boolean_expression(tokens)
-
-
-def parse_statement(tokens):
-    """
-    statement = print_statement |
-                expression
-    """
-    if tokens[0]["tag"] == "print":
-        return parse_assignment_statement(tokens)
-    return parse_expression(tokens)
-
-def test_parse_statement(tokens):
-    print("testing parse statement")
-    tokens = tokenize("2+3*4+5")
-    assert parse_statement(tokens) == parse_expression(tokens)
 
 def parse_assignment_statement(tokens):
     """
@@ -377,7 +354,6 @@ def parse_assignment_statement(tokens):
         value, tokens = parse_expression(tokens[1:])
         node = {"tag": tag, "target": node, "value": value}
     return node, tokens
-
 
 def test_parse_assignment_statement():
     """
@@ -396,7 +372,29 @@ def test_parse_assignment_statement():
         "value": {"tag": "number", "value": 4, "position": 2},
     }
 
+def parse_statement(tokens):
+    """
+    assignment_statement = expression
+    statement = print_statement | expression
+    """
+    if tokens[0]["tag"] == "print":
+        return parse_assignment_statement(tokens)
+    return parse_expression(tokens)
+
+def test_parse_statement(tokens):
+    """
+    assignment_statement = expression
+    statement = print_statement | assignment_statement
+    """
+    print("testing parse statement")
+    tokens = tokenize("2+3*4+5")
+    assert parse_statement(tokens) == parse_expression(tokens)
+
 def parse(tokens):
+    """
+    Current entry point is 
+        statement = print_statement | assignment_expression
+    """
     ast, tokens = parse_statement(tokens)
     return ast 
 
