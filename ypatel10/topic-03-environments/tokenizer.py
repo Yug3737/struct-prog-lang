@@ -33,9 +33,11 @@ patterns = [
     ["else", "else"],
     ["function", "function"],
     ["return", "return"],
-    [ "(\\d*\\.\\d+)|(\\d+\\.\\d*)|(\\d+)","number",],
-    ["[A-Za-z_][A-Za-z0-9_]*, "identifier"],
-    ["\\&\\&", "&&"], ["\\|\\|", "||"], ["!", "!"],
+    ["(\\d*\\.\\d+)|(\\d+\\.\\d*)|(\\d+)","number"],
+    ["[A-Za-z_][A-Za-z0-9_]*", "identifier"],
+    ["\\&\\&", "&&"],
+    ["\\|\\|", "||"],
+    ["!", "!"],
 ]
 
 for pattern in patterns:
@@ -46,6 +48,7 @@ def tokenize(characters: str):
     position = 0
     while position < len(characters):
         for pattern, tag in patterns:
+            # matches "pattern" regex pattern from the position index of characters string
             match = pattern.match(characters, position)
             if match:
                 break
@@ -75,15 +78,16 @@ def tokenize(characters: str):
 def test_simple_tokens():
     print("Testing simple tokens")
     assert tokenize("+") == [{'tag': '+', 'value': '+', 'position': 0}, {'tag': None, 'value': None, 'position': 1}]
-    assert tokenize("_") == [{'tag': '-', 'value': '0', 'position': 0}, {'tag': None, 'value': None, 'position': 1}]
+    assert tokenize("-") == [{'tag': '-', 'value': '-', 'position': 0}, {'tag': None, 'value': None, 'position': 1}]
+    assert tokenize("++") == [{'tag': '++', 'value': '++', 'position': 0}, {'tag': None, 'value': None, 'position': 2}]
+    assert tokenize("--") == [{'tag': '--', 'value': '--', 'position': 0}, {'tag': None, 'value': None, 'position': 2}]
     i = 0
-    for char in ["+-/*()"]:
+    for char in "++-/*()":
         tokens = tokenize(char)
         assert tokens[0]["tag"] == char
         assert tokens[0]["value"] == char
         assert tokens[0]["position"] == i
-        i += 1
-    for characters in [")", "(", "+","++","-", "*", "/", "==", "<", ">", ">=", "<=", "==", "!=", "=", "||", "&&", "!", "print"]:
+    for characters in [")", "(", "+","++","--","-", "*", "/", "==", "<", ">", ">=", "<=", "==", "!=", "=", "||", "&&", "!", "print"]:
         tokens = tokenize(characters)
         assert (
             tokens[0]["tag"] == characters
@@ -94,7 +98,21 @@ def test_simple_tokens():
         assert tokens[0]["tag"] == "number"
         assert tokens[0]["value"] == float(number)
 
+def test_identifier_tokens():
+    print("testing identifier tokens")
+    for s in ["x", "_", "X"]:
+        tokens = tokenize(s)
+        assert tokens[0]["tag"] == "identifier"
+        assert tokens[0]["value"] == s
+    
+    # Test Cases for Practice
+    for s in ["__myvar__", "x1y1z1", "_1x"]:
+        tokens = tokenize(s)
+        assert tokens[0]["tag"] == "identifier"
+        assert tokens[0]["value"] == s
+
 if __name__ == "__main__":
     test_simple_tokens()
+    test_identifier_tokens()
     print("Testing Done")
     
