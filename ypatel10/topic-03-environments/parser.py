@@ -14,8 +14,10 @@ Accept a string of tokens, return an AST expressed as stack of dictionaries
     expression = boolean_expression
     print_statement = "print" "(" expression ")"
     assignment_statement = expression
-    statement = print_statement |
-                assignment_statement
+    statement = print_statement | assignment_statement
+    statement_list = statement {";" statement } {";"}
+    program = statement_list
+
 """
 
 from pprint import pprint
@@ -378,6 +380,58 @@ def test_parse_statement(tokens):
     tokens = tokenize("2+3*4+5")
     assert parse_statement(tokens) == parse_expression(tokens)
 
+def parse_statement_list(tokens):
+    """
+    statement_list = statement {";" statement } {";"}
+    """
+    ast, tokens = parse_statement(tokens)
+    if tokens[0]["tag"] != ";":
+        return ast, tokens
+    current_ast = {
+        'tag': "list",
+        'statement': ast,
+        'list': None
+    }
+    top_ast = current_ast
+    while tokens[0]["tag"] == ";":
+        tokens = tokens[1:]
+        ast, tokens = parse_statement(tokens)
+        current_ast['list'] = {
+            'tag': 'list',
+            'statement': ast,
+            'list': None
+        }
+        current_ast = current_ast['list']
+    return top_ast, tokens
+
+def test_parse_statement_list(tokens):
+    """
+    statement_list = statement {";" statement } {";"}
+    """
+    print("testing parse statement_list")
+    tokens = tokenize("4+5")
+    assert parse_statement_list(tokens) == parse_statement(tokens)
+    tokens = tokenize("4+5;3+4")
+    ast, tokens = parse_statement_list()
+
+    tokens = tokenize("print(4);print(5);")
+    ast, tokens = parse_statement_list(tokens)
+
+
+def parse_program(tokens):
+    """
+    program = statement_list
+    """
+    return parse_statement_list(tokens)
+
+def test_parse_program(tokens):
+    """
+    program = statement_list
+    """
+    print("testing parse program")
+    tokens = tokenize("2+3*4+5")
+    ast, _ = parse_statement_list(tokens) == parse_program(tokens)
+
 def parse(tokens):
     """
     Current entry point is 
@@ -430,5 +484,7 @@ if __name__ == "__main__":
     test_parse_boolean_expression()
     test_parse_print_statement()
     test_parse_assignment_statement()
+    test_parse_statement_list()
+    test_parse_program()
     test_parse()
     print("done")
