@@ -13,6 +13,7 @@ Accept a string of tokens, return an AST expressed as stack of dictionaries
     boolean_expression == boolean_term {"||" boolean_term}
     expression = boolean_expression
     print_statement = "print" "(" expression ")"
+    if_statement = "if" "(" boolean_expression ")" statement { "else" statement }
     assignment_statement = expression
     statement = print_statement | assignment_statement
     statement_list = statement {";" statement } {";"}
@@ -372,6 +373,9 @@ def parse_statement(tokens):
     """
     if tokens[0]["tag"] == "print":
         return parse_assignment_statement(tokens)
+    if tokens[0]["tag"] == "{":
+        ast, tokens = parse_statement_list(tokens[1:])
+        tokens[0]["tag"] == ""
     return parse_expression(tokens)
 
 def test_parse_statement(tokens):
@@ -382,6 +386,8 @@ def test_parse_statement(tokens):
     print("testing parse statement")
     tokens = tokenize("2+3*4+5")
     assert parse_statement(tokens) == parse_expression(tokens)
+    tokens = tokenize("{1;2;3}")
+    print(tokens)
 
 def parse_statement_list(tokens):
     """

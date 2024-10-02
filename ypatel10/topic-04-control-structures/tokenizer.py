@@ -39,7 +39,9 @@ patterns = [
     ["\\&\\&", "&&"],
     ["\\|\\|", "||"],
     ["!", "!"],
-    ["[ \n\t]+", "whitespace"]
+    ["[ \n\t]+", "whitespace"],
+    ["\\{", "{"],
+    ["\\}", "}"],
 ]
 
 for pattern in patterns:
