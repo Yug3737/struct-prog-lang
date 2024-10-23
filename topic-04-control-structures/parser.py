@@ -13,10 +13,12 @@ Accept a string of tokens, return an AST expressed as stack of dictionaries
     boolean_expression == boolean_term { "||" boolean_term }
     expression = boolean_expression
     print_statement = "print" "(" expression ")"
-    if_statement = "if" "(" boolean_expression ")" { "else" statement }
+    if_statement = "if" "(" boolean_expression ")" statement { "else" statement }
+    while_statement = "while" "(" boolean_expression ")" statement
     assignment_statement = expression
     statement = print_statement |
                 if_statement |
+                while_statement | 
                 "{" statement_list "}"
                 assignment_expression
     statement_list = statement { ";" statement } {";"}
@@ -416,6 +418,58 @@ def test_parse_if_statement():
         },
     }
 
+def parse_while_statement(tokens):
+    """
+    while_statement = "while" "(" boolean_expression ")" statement
+    """
+    assert tokens[0]["tag"] == "while"
+    tokens = tokens[1:]
+    assert tokens[0]["tag"] == "("
+    tokens = tokens[1:]
+    condition, tokens = parse_expression(tokens)
+    assert tokens[0]["tag"] == ")"
+    tokens = tokens[1:]
+    do_statement, tokens = parse_statement(tokens)
+    node = {"tag":"while","condition":condition,"do":do_statement}
+    return node, tokens
+
+def test_parse_while_statement():
+    print("testing parse_while_statement")
+    """
+    while_statement = "while" "(" boolean_expression ")" statement
+    """
+    ast, tokens = parse_while_statement(tokenize("while(1)2"))
+
+    assert ast == {
+        "tag": "while",
+        "condition": {"tag": "number", "value": 1, "position": 6},
+        "do": {"tag": "number", "value": 2, "position": 8},
+    }
+    ast, tokens = parse_while_statement(tokenize("while(1==1){print(3);print(4)}"))
+    assert ast == {
+        "tag": "while",
+        "condition": {
+            "tag": "==",
+            "left": {"tag": "number", "value": 1, "position": 6},
+            "right": {"tag": "number", "value": 1, "position": 9},
+        },
+        "do": {
+            "tag": "list",
+            "statement": {
+                "tag": "print",
+                "value": {"tag": "number", "value": 3, "position": 18},
+            },
+            "list": {
+                "tag": "list",
+                "statement": {
+                    "tag": "print",
+                    "value": {"tag": "number", "value": 4, "position": 27},
+                },
+                "list": None,
+            },
+        },
+    }
+
 def parse_assignment_statement(tokens):
     """
     assignment_statement = expression
@@ -448,6 +502,7 @@ def parse_statement(tokens):
     """
     statement = print_statement |
                 if_statement |
+                while_statement |
                 "{" statement_list "}"
                 assignment_statement
     """
@@ -455,8 +510,8 @@ def parse_statement(tokens):
         return parse_print_statement(tokens) 
     if tokens[0]["tag"] == "if":
         return parse_if_statement(tokens)
-#    if tokens[0]["tag"] == "while":
-#        return parse_while_statement(tokens)
+    if tokens[0]["tag"] == "while":
+        return parse_while_statement(tokens)
     if tokens[0]["tag"] == "{":
         ast, tokens = parse_statement_list(tokens[1:])
         assert tokens[0]["tag"] == "}"
@@ -588,7 +643,7 @@ if __name__ == "__main__":
     test_parse_expression()
     test_parse_print_statement()
     test_parse_if_statement()
-    # test_parse_while_statement()
+    test_parse_while_statement()
     test_parse_assignment_statement()
     test_parse_statement()
     test_parse_statement_list()
