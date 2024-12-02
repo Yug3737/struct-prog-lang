@@ -133,8 +133,31 @@ def evaluate(ast, environment):
         return value, return_chain
 
     if ast["tag"] == "function":
-        pprint(ast)
         return ast, False
+
+    if ast["tag"] == "call":
+        print(ast)
+        function, _ = evaluate(ast["function"], environment)
+        print(function["parameters"])
+        local_environment = {}
+        argument_values = []
+        for argument in ast["arguments"]:
+            value, _ = evaluate(argument, environment)
+            argument_values.append(value)
+        parameter_identifiers = []
+        for parameter in function["parameters"]:
+            identifier = parameter["value"]
+            parameter_identifiers.append(identifier)
+        p = list(zip(parameter_identifiers, argument_values))
+        for identifier, value in p:
+            print(identifier, value)
+            local_environment[identifier] = value
+        local_environment["$parent"] = environment
+        value, return_chain = evaluate(function["body"], local_environment)
+        if return_chain:
+            return value, False
+        else:
+            return None, False
 
     assert False, f"Unknown operator [{ast['tag']}] in AST"
 
@@ -274,6 +297,42 @@ def test_evaluate_function_literal():
     )
 
 
+def test_evaluate_function_call():
+    print("test evaluate_function_call")
+    # environment = {}
+    # code = "function f() {print(1234)}"
+    # result, _ = evaluate(parse(tokenize(code)), environment)
+    # assert environment == {
+    #     "f": {
+    #         "body": {
+    #             "statements": [
+    #                 {"tag": "print", "value": {"tag": "number", "value": 1234}}
+    #             ],
+    #             "tag": "block",
+    #         },
+    #         "parameters": [],
+    #         "tag": "function",
+    #     }
+    # }
+    # ast = parse(tokenize("f()"))
+    # assert ast == {
+    #     "statements": [
+    #         {
+    #             "arguments": [],
+    #             "function": {"tag": "identifier", "value": "f"},
+    #             "tag": "call",
+    #         }
+    #     ],
+    #     "tag": "program",
+    # }
+    # result, _ = evaluate(ast, environment)
+    # # visual observe "1234"
+
+    environment = {}
+    code = "x = 3; function f() {print(x)}; function g(q) {f();print(q)}"
+    result, _ = evaluate(parse(tokenize(code)), environment)
+    result, _ = evaluate(parse(tokenize("x = 4; x = x * 2; q=7; g(5)")), environment)
+
 if __name__ == "__main__":
     # blocks and programs are tested implicitly
     test_evaluate_single_value()
@@ -287,4 +346,5 @@ if __name__ == "__main__":
     test_evaluate_while_statement()
     test_evaluate_assignment_statement()
     test_evaluate_function_literal()
+    test_evaluate_function_call()
     print("done.")

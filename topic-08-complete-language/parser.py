@@ -379,10 +379,10 @@ def parse_complex_expression(tokens):
                 while tokens[0]["tag"] == ",":
                     value, tokens = parse_simple_expression(tokens[1:])
                     items.append(value)
-                assert (
-                    tokens[0]["tag"] == ")"
-                ), f"Expected ']' at position {tokens[0]['position']}"
-                tokens = tokens[1:]
+            assert (
+                tokens[0]["tag"] == ")"
+            ), f"Expected ')' at position {tokens[0]['position']}"
+            tokens = tokens[1:]
             ast = {"tag": "call", "function": ast, "arguments": items}
     return ast, tokens
 
@@ -429,6 +429,7 @@ def test_parse_complex_expression():
         "function": {"tag": "identifier", "value": "x"},
         "arguments": [],
     }
+    assert tokens[0]["tag"] == None
 
     ast, tokens = parse_complex_expression(tokenize("x(1,2)"))
     assert ast == {
@@ -1178,3 +1179,7 @@ if __name__ == "__main__":
         print(f"Untested grammar = [[[ {test_grammar} ]]]")
 
     test_parse()
+
+    code = "f()"
+    tokens = tokenize(code)
+    ast = parse(tokens)
