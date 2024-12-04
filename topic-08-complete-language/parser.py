@@ -359,14 +359,14 @@ def parse_complex_expression(tokens):
                 tokens[0]["tag"] == "]"
             ), f"Expected ']' at position {tokens[0]['position']}"
             tokens = tokens[1:]
-            ast = {"tag": "indexed", "base": ast, "index": index_ast}
+            ast = {"tag": "complex", "base": ast, "index": index_ast}
         if tokens[0]["tag"] == ".":
             tokens = tokens[1:]
             assert (
                 tokens[0]["tag"] == "identifier"
             ), f"Expected identifier at position {tokens[0]['position']}"
             ast = {
-                "tag": "indexed",
+                "tag": "complex",
                 "base": ast,
                 "index": {"tag": "string", "value": tokens[0]["value"]},
             }
@@ -397,21 +397,21 @@ def test_parse_complex_expression():
         assert parse_complex_expression(t) == parse_simple_expression(t)
     ast, tokens = parse_complex_expression(tokenize("x[3]"))
     assert ast == {
-        "tag": "indexed",
+        "tag": "complex",
         "base": {"tag": "identifier", "value": "x"},
         "index": {"tag": "number", "value": 3},
     }
     ast, tokens = parse_complex_expression(tokenize('x["x"]'))
     assert ast == {
-        "tag": "indexed",
+        "tag": "complex",
         "base": {"tag": "identifier", "value": "x"},
         "index": {"tag": "string", "value": "x"},
     }
     ast, tokens = parse_complex_expression(tokenize('x["x"][3]'))
     assert ast == {
-        "tag": "indexed",
+        "tag": "complex",
         "base": {
-            "tag": "indexed",
+            "tag": "complex",
             "base": {"tag": "identifier", "value": "x"},
             "index": {"tag": "string", "value": "x"},
         },
@@ -419,7 +419,7 @@ def test_parse_complex_expression():
     }
     ast, tokens = parse_complex_expression(tokenize("x.abc"))
     assert ast == {
-        "tag": "indexed",
+        "tag": "complex",
         "base": {"tag": "identifier", "value": "x"},
         "index": {"tag": "string", "value": "abc"},
     }

@@ -8,7 +8,10 @@ def evaluate(ast, environment):
         assert type(ast["value"]) in [
             float,
             int,
-        ], f"unexpected numerical type {type(ast["value"])}"
+        ], f"unexpected type {type(ast["value"])}"
+        return ast["value"], False
+    if ast["tag"] == "string":
+        assert type(ast["value"]) == str, f"unexpected type {type(ast["value"])}"
         return ast["value"], False
     if ast["tag"] == "identifier":
         identifier = ast["value"]
@@ -133,6 +136,7 @@ def evaluate(ast, environment):
         return value, return_chain
 
     if ast["tag"] == "function":
+        # pprint(ast)
         return ast, False
 
     if ast["tag"] == "call":
@@ -159,6 +163,22 @@ def evaluate(ast, environment):
         else:
             return None, False
 
+    if ast["tag"] == "complex":
+        pprint(ast)
+        base, _ = evaluate(ast["base"], environment)
+        index, _ = evaluate(ast["index"], environment)
+        if index == None:
+            return base, False # might revisit? 
+        if type(index) in [int, float]:
+            assert int(index) == index
+            assert type(base) == list
+            assert len(base) > index
+            return base[index], False
+        if type(index) == str:
+            assert type(base) == dict
+            # assert index in base.keys()
+            return base[index], False
+        assert False, f"Unknown index type [{index}]"
     assert False, f"Unknown operator [{ast['tag']}] in AST"
 
 
@@ -182,6 +202,46 @@ def equals(code, environment, expected_result, expected_environment=None):
         -- got --
         {[environment]}."""
 
+def test_evaluate_complex_expression():
+    environment = {"x":[2,4,6,8]}
+    code = "x[3]"
+    ast = parse(tokenize(code))
+    result, _ = evaluate(ast, environment)
+    assert result == 8
+
+    environment = {"x":{"a":3, "b":4}}
+    code = 'x["b"]'
+    ast = parse(tokenize(code))
+    result, _ = evaluate(ast, environment)
+    assert result == 4
+
+    environment = {"x": {"a": [1,2,3], "b": 4}}
+    code = 'x["a"]'
+    ast = parse(tokenize(code))
+    result, _ = evaluate(ast, environment)
+    assert result == [1,2,3]
+
+    environment = {"x": {"a": [1, 2, 3], "b": 4}}
+    code = 'x["a"][2]'
+    ast = parse(tokenize(code))
+    result, _ = evaluate(ast, environment)
+    assert result == 3
+    print(result)
+
+    environment = {"x": [[1, 2], [3, 4]]}
+    code = "x[0][1]"
+    ast = parse(tokenize(code))
+    result, _ = evaluate(ast, environment)
+    assert result == 2
+    print(result)
+
+    environment = {"x": {"a": {"x": 4, "y": 6}, "b": {"x": 5, "y": 7}}}
+    code = 'x["b"]["y"]'
+    ast = parse(tokenize(code))
+    result, _ = evaluate(ast, environment)
+    assert result == 7
+    print(result)
+
 
 def test_evaluate_single_value():
     print("test evaluate single value")
@@ -190,6 +250,8 @@ def test_evaluate_single_value():
     equals("4.2", {}, 4.2, {})
     equals("X", {"X": 1}, 1)
     equals("Y", {"X": 1, "Y": 2}, 2)
+    equals('"x"',{"x":"cat","y":2},"x")
+    equals("x", {"x": "cat", "y": 2},"cat")
 
 
 def test_evaluate_addition():
@@ -347,4 +409,5 @@ if __name__ == "__main__":
     test_evaluate_assignment_statement()
     test_evaluate_function_literal()
     test_evaluate_function_call()
+    test_evaluate_complex_expression()
     print("done.")
